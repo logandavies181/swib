@@ -36,8 +36,8 @@ var dumpCmd = &cobra.Command{
 			method = true
 			path = true
 			proto = true
-			headers = true
 			host = true
+			headers = true
 			body = true
 			
 		}
@@ -55,11 +55,13 @@ var dumpCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(dumpCmd)
 	dumpCmd.Flags().StringVarP(&port, "port", "p", "8080", "Port to listen on")
-	
+
+	// TODO sort out true/false	
 	dumpCmd.Flags().BoolVarP(&method, "method", "m", false, "Print request method")
 	dumpCmd.Flags().BoolVarP(&path, "path", "P", false, "Print request path")
 	dumpCmd.Flags().BoolVarP(&proto, "proto", "V", false, "Print request http version")
-	dumpCmd.Flags().BoolVarP(&headers, "headers", "H", false, "Print request headers")
+	dumpCmd.Flags().BoolVarP(&host, "host", "H", false, "Print request http version")
+	dumpCmd.Flags().BoolVarP(&headers, "headers", "R", false, "Print request headers")
 	dumpCmd.Flags().BoolVarP(&body, "body", "b", true, "Print request body")
 	dumpCmd.Flags().BoolVarP(&all, "all", "a", false, "Shortcut to print all")
 
@@ -79,9 +81,12 @@ func dumpHandler (w http.ResponseWriter, r *http.Request) {
 	if proto { topLine = append(topLine, r.Proto) }
 	
 	if len(topLine) > 0 {
-		resp = append(resp, strings.Join(resp," "))
+		resp = append(resp, strings.Join(topLine," "))
 	}
 	
+	if host {
+		resp = append(resp, fmt.Sprintf("Host: %s", r.Host))
+	}
 	if headers {
 		var headerList []string
 		for k, v := range(r.Header) {
