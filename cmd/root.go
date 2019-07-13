@@ -28,6 +28,9 @@ import (
 
 var cfgFile string
 
+// Initialise vars we use in more than one cmd
+var all bool
+
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

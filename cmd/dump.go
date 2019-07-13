@@ -18,7 +18,7 @@ var (
 	host bool
 	headers bool
 	body bool
-	all bool
+	// all bool in root
 
 	stdout bool
 	responseBody bool

@@ -17,6 +17,7 @@ var curlCmd = &cobra.Command{
 	Long: `Sometimes curl isn't available in a container. Or perhaps you're on windows...`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(myFlag)
+		fmt.Println(args[0])
 
 	},
 }
