@@ -11,6 +11,23 @@ import (
 )
 
 // var all bool from root
+var state []string
+var quiet bool
+
+var statesMap map[int64]string = map[int64]string{
+	1:	"ESTABLISHED",
+	2:	"SYN SENT",
+	3:	"SYN RECEIVED",
+	4:	"FIN WAIT 1",
+	5:	"FIN WAIT 2",
+	6:	"TIME WAIT",
+	7:	"CLOSE",
+	8:	"CLOSE WAIT",
+	9:	"LAST ACKNOWLEDGEMENT",
+	10:	"LISTENING",
+	11:	"CLOSING",
+	12:	"NEW SYN RECEIVED", 
+}
 
 var netstatCmd = &cobra.Command{
 	Use:   "netstat",
@@ -19,6 +36,8 @@ var netstatCmd = &cobra.Command{
 		f, err := os.Open("/proc/net/tcp")
 		defer f.Close()
 		if err != nil { fmt.Println (err) }
+		
+		if !quiet { fmt.Println("LOCAL\t\tREMOTE\t\tSTATE") }
 		
 		lineScanner := bufio.NewScanner(f)
 		lineScanner.Scan() // first line just lists the columns
@@ -33,13 +52,14 @@ var netstatCmd = &cobra.Command{
 	
 			remHex := wordScanner.Text()
 			wordScanner.Scan()
+		
+			stateHex := wordScanner.Text()
+
 			// State 0A is listening
 			if all {
-				fmt.Println(parseHexIp(localHex),parseHexIp(remHex))
-			} else {
-				if wordScanner.Text() == "0A" {
-					fmt.Println(parseHexIp(localHex),parseHexIp(remHex))
-				}
+				fmt.Printf("%s\t%s\t%s\n",parseHexIp(localHex),parseHexIp(remHex),parseStateHex(stateHex))
+			} else if stateHexInStates(stateHex)  {
+				fmt.Printf("%s\t%s\t%s\n",parseHexIp(localHex),parseHexIp(remHex),parseStateHex(stateHex))
 			}
 		}
 	},
@@ -48,6 +68,8 @@ var netstatCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(netstatCmd)
 	netstatCmd.Flags().BoolVarP(&all, "all", "a", false, "Print all states instead of just listening")
+	netstatCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print header or not")
+	netstatCmd.Flags().StringSliceVarP(&state, "state", "s", []string{"0A"}, "States to print")
 
 }
 
@@ -65,5 +87,28 @@ func parseHexIp(hex string) string {
 		if err != nil { fmt.Println(err) }
 		ip = append(ip,fmt.Sprintf("%d",strHex))
 	}
-	return fmt.Sprintf("%s:%s",strings.Join(ip,"."),fmt.Sprintf("%d",port))
+
+	var portString string
+	if port == 0 { 
+		portString = "*"
+	} else {
+		portString = fmt.Sprintf("%d",port)
+	}
+	return fmt.Sprintf("%s:%s",strings.Join(ip,"."),portString)
+}
+
+func parseStateHex(stateHex string) string {
+	stateInt, err := strconv.ParseInt(stateHex,16,8)
+	if err != nil { fmt.Println(err); return "unknown" }
+	return statesMap[stateInt]
+}
+
+func stateHexInStates(stateHex string) bool {
+	
+	for _, s := range state {
+		if stateHex == s {
+			return true
+		}
+	}
+	return false
 }
