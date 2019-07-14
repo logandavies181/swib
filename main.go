@@ -1,6 +1,6 @@
 package main
 
-import "switchblade/cmd"
+import "swib/cmd"
 
 func main() {
 	//  var myFlag string
