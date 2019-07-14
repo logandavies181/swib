@@ -55,12 +55,14 @@ func parseHexIp(hex string) string {
 	// expecting ip:port in weird format from /proc/net/tcp
 	stringParts := strings.Split(hex, ":")
 	var ip []string
-	port, _ := strconv.ParseInt(stringParts[1],16,16)
+	port, err := strconv.ParseInt(stringParts[1],16,64)
+	if err != nil { fmt.Println (err) }
 	
 	// Read through part
-	for i := 0; i < 4; i++ {
-		strHexRep := string(stringParts[0][i*2:i*2+1])
-		strHex, _ := strconv.ParseInt(strHexRep,16,8)
+	for i := 3; i+1 > 0; i-- {
+		strHexRep := stringParts[0][i*2:i*2+2]
+		strHex, err := strconv.ParseInt(strHexRep,16,32)
+		if err != nil { fmt.Println(err) }
 		ip = append(ip,fmt.Sprintf("%d",strHex))
 	}
 	return fmt.Sprintf("%s:%s",strings.Join(ip,"."),fmt.Sprintf("%d",port))
